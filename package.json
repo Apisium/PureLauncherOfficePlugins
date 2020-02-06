@@ -1,0 +1,58 @@
+{
+  "name": "pure-launcher-official-plugins",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The official plugins of PureLauncher.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint packages/ --ext .js,.ts,.tsx",
+    "start": "pl-plugin-dev -e packages/MultiInstances/index.tsx",
+    "build": "pl-plugin-dev build -e packages/MultiInstances/index.tsx",
+    "test": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Apisium/PureLauncherOfficialPlugins.git"
+  },
+  "keywords": [
+    "PureLauncher",
+    "Minecraft",
+    "TypeScript",
+    "Plugins"
+  ],
+  "author": "Shirasawa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Apisium/PureLauncherOfficialPlugins/issues"
+  },
+  "homepage": "https://github.com/Apisium/PureLauncherOfficialPlugins#readme",
+  "dependencies": {
+    "@types/react": "^16.9.19",
+    "@types/react-router-dom": "^5.1.3",
+    "@xmcl/launch": "^1.1.1",
+    "history": "^4.10.1",
+    "pure-launcher": "git+https://github.com/Apisium/PureLauncher.git",
+    "react-router-cache-route": "^1.8.4",
+    "reqwq": "^0.2.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.8.3",
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "eslint": "^6.8.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.18.3",
+    "eslint-plugin-standard": "^4.0.1",
+    "husky": "^4.2.1",
+    "typescript": "^3.7.5"
+  }
+}
