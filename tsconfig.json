@@ -13,7 +13,6 @@
     "jsx": "react",
     "baseUrl": ".",
     "paths": {
-      "@typescript-eslint/explicit-function-return-type": ["off"],
       "@plugin": ["./node_modules/pure-launcher/packages/plugin"]
     }
   }

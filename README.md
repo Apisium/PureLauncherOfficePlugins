@@ -5,7 +5,8 @@
 ## Plugins
 
 - MultiInstances: Allows you to run multiple game instances.
-- Bot: Allows you to create a programmable MineCraft bot.
+- AuthlibInjector: Allow you to use AuthlibInjector to login.
+- MCBot: Allows you to create a programmable MineCraft bot.
 
 ## Author
 

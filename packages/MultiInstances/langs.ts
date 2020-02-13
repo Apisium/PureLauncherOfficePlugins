@@ -1,3 +1,5 @@
+import { locates } from '@plugin'
+
 export const zhCN = {
   account: '账号',
   version: '版本',
@@ -11,7 +13,7 @@ export const zhCN = {
   description: '一个能让你同时开启多个游戏实例的插件.'
 }
 
-const langs: Record<string, { [key in keyof typeof zhCN]: string }> = {
+export default locates<typeof zhCN>({
   'zh-cn': zhCN,
   'en-us': {
     launch: 'Launch',
@@ -25,6 +27,4 @@ const langs: Record<string, { [key in keyof typeof zhCN]: string }> = {
     noAccount: 'No account has been selected.',
     description: 'A plugin that allows you to run multiple game instances.'
   }
-}
-
-export default langs
+})
