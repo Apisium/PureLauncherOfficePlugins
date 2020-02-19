@@ -62,7 +62,7 @@ const MultiInstances: React.FC = () => {
       <span style={css[2]}>{$.version}: </span>
       <select style={css[4]} onChange={e => setVersion(e.target.value)} value={version}>
         {versions.map(([key, it]) => <option value={key} key={key}>
-          { `${it.type === 'latest-release' ? lastRelease
+          {`${it.type === 'latest-release' ? lastRelease
             : it.type === 'latest-snapshot' ? lastSnapshot : it.name || noTitle} (${it.lastVersionId})`}
         </option>)}
       </select>
