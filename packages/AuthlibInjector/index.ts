@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable object-curly-newline, @typescript-eslint/explicit-function-return-type */
 import AuthlibInjectorAuthenticator, { AUTHLIB_INJECTOR, AuthlibInjectorProfile } from './AuthlibInjectorAuthenticator'
 import { join } from 'path'
-import { createHash } from 'crypto'
 import { version } from './package.json'
 import { LaunchOption } from '@xmcl/core'
-import { Plugin, plugin, event, pluginMaster, profilesStore, fs, constants, download, getJson, $ as $0 } from '@plugin'
+import { Plugin, plugin, event, pluginMaster, profilesStore, fs, constants,
+  download, getJson, $ as $0, openLoginDialog } from '@plugin'
 import $ from './langs'
 
 const JAR_PATH = join(constants.APP_PATH, 'authlib-injector/authlib-injector.jar')
@@ -15,7 +15,7 @@ const JSON_URL = 'https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artif
   author: 'Shirasawa',
   title: () => 'Authlib-Injector',
   description: () => $.description,
-  id: '@Shirasawa/multi-instances'
+  id: '@PureLauncher/multi-instances'
 })
 export default class AuthlibInjector extends Plugin {
   constructor () {
@@ -34,14 +34,12 @@ export default class AuthlibInjector extends Plugin {
     const url = json?.download_url
     if (!url) throw new Error($0('Network connection failed!'))
     try {
-      await download({ url, file: JAR_PATH }, 'Authlib Injector')
       const hash = json.checksums?.sha256
-      // eslint-disable-next-line promise/param-names
-      if (hash && hash !== await new Promise<string>((resolve, e) => {
-        const s = createHash('sha1').setEncoding('hex')
-        fs.createReadStream(JAR_PATH).on('error', e).pipe(s).on('error', e)
-          .on('finish', () => resolve(s.read()))
-      })) throw new Error($.downloadFailed)
+      await download({
+        url,
+        destination: JAR_PATH,
+        checksum: hash ? { algorithm: 'sha256', hash } : undefined
+      }, 'Authlib Injector')
     } catch (e) {
       await fs.unlink(JAR_PATH).catch(console.error)
       throw e
@@ -52,6 +50,15 @@ export default class AuthlibInjector extends Plugin {
   public preLaunch (_: string, option: LaunchOption) {
     const profile = profilesStore.getCurrentProfile()
     if (profile?.type !== AUTHLIB_INJECTOR) return
-    option.yggdrasilAgent = { jar: JAR_PATH, server: (profile as AuthlibInjectorProfile).url }
+    const server = (profile as AuthlibInjectorProfile).url
+    // option.extraJVMArgs.push('-Dauthlibinjector.side=client', '-Dauthlibinjector.yggdrasil.prefetched=' + btoa(server))
+    option.yggdrasilAgent = { jar: JAR_PATH, server }
+  }
+
+  @event()
+  public dragIn (t: DataTransfer) {
+    let data = t.getData('text/plain')
+    if (!data.startsWith('authlib-injector:yggdrasil-server:') || !(data = data.slice(34))) return
+    openLoginDialog(AUTHLIB_INJECTOR, { url: decodeURIComponent(data) })
   }
 }

@@ -8,7 +8,7 @@ import page from './Page'
   author: 'Shirasawa',
   title: () => $.title,
   description: () => $.description,
-  id: '@Shirasawa/multi-instances'
+  id: '@PureLauncher/multi-instances'
 })
 export default class MultiInstances extends Plugin {
   constructor () {

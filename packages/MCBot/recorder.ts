@@ -4,7 +4,7 @@ import crc32 from 'crc/lib/es6/crc32'
 import { join } from 'path'
 import { PacketMeta } from 'minecraft-protocol'
 import { createWriteStream, WriteStream } from 'fs'
-import { Yazl, constants, fs, version } from '@plugin'
+import { Yazl, constants, fs, version, notice } from '@plugin'
 
 export interface Recorder {
   recording: boolean
@@ -139,6 +139,7 @@ export default (bot: Client, key: string, instance: import('./index').default): 
         ret.pauseRecord(), cfg.checkTime)
     }
     instance.addText(key, $.recording)
+    notice({ content: $.recording })
     instance.update()
   }
   ret.stopRecord = (restart = false) => {
@@ -146,12 +147,14 @@ export default (bot: Client, key: string, instance: import('./index').default): 
     ret.recording = false
     clearInterval(checkTimer)
     instance.addText(key, $.stopRecording)
+    notice({ content: $.saving })
     instance.update()
     stream.end(() => {
       try {
         const zip = new Yazl.ZipFile()
         zip.outputStream.pipe(createWriteStream(join(ROOT, fileName)))
-          .on('close', () => console.log('Done!')).on('error', console.error)
+          .on('close', () => notice({ content: $.saved + ': ' + fileName }))
+          .on('error', console.error)
         zip.addFile(tmcprName, 'recording.tmcpr')
         zip.addBuffer(Buffer.from(crc.toString()), 'recording.tmcpr.crc32')
         zip.addBuffer(Buffer.from(JSON.stringify({

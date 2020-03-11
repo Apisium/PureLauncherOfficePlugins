@@ -1,6 +1,7 @@
-/* eslint-disable no-unused-expressions */
+/* eslint-disable no-unused-expressions, no-sequences, object-curly-newline */
 import { version } from './package.json'
-import { React, Plugin, plugin, event, history, pluginMaster, LiveRoute, fs, constants } from '@plugin'
+import { React, Plugin, plugin, event, history, pluginMaster, LiveRoute, fs,
+  constants, $ as $0, openConfirmDialog, notice } from '@plugin'
 import { join } from 'path'
 import { render } from '@xmcl/text-component'
 import Page from './Page'
@@ -11,12 +12,12 @@ import setupRecorder, { Recorder } from './recorder'
 const CONFIG_PATH = join(constants.APP_PATH, 'mc-bot-config.json')
 
 const renderDom = (info: ReturnType<typeof render>, elm: HTMLElement) => {
-  console.log(info)
-  elm.style.cssText = info.style
-  elm.innerText = info.text || ''
+  Object.assign(elm.style, info.style)
+  elm.innerText = info.component.text || ''
   info.children.forEach(it => {
     const span = document.createElement('span')
     renderDom(it, span)
+    span.style.userSelect = 'text'
     elm.appendChild(span)
   })
 }
@@ -25,8 +26,8 @@ const renderDom = (info: ReturnType<typeof render>, elm: HTMLElement) => {
   version,
   author: 'Shirasawa',
   title: () => 'MCBot',
-  description: () => 'bot',
-  id: '@Shirasawa/mc-bot'
+  description: () => $.description,
+  id: '@PureLauncher/mc-bot'
 })
 export default class MCBot extends Plugin {
   public config = {}
@@ -98,9 +99,19 @@ export default class MCBot extends Plugin {
     const user = pluginMaster.getAllProfiles().find(it => it.key === key)
     if (!user) return
     const authenticator = pluginMaster.logins[user.type]
-    try { if (!await authenticator.validate(key)) await authenticator.refresh(key) } catch (e) {
-      console.error(e)
-      return
+    try {
+      if (!await authenticator.validate(key, true)) {
+        throw new Error($0('Current account is invalid, please re-login!'))
+      }
+    } catch (e) {
+      if (!e || !e.connectFailed || !await openConfirmDialog({
+        text: $0('Network connection failed. Do you want to play offline?'),
+        cancelButton: true
+      })) {
+        console.error(e)
+        notice({ content: $.cannotLogin, error: true })
+        return
+      }
     }
     const hostname = (cfg.host || '').split(':', 2)
 
@@ -114,7 +125,8 @@ export default class MCBot extends Plugin {
     }, cfg.commandPrefix), key, this)
     this.applyToBot(key)
     this.update()
-    const disconnect = data => {
+    client.command.outputHelp = () => this.addText(key, client.command.helpInformation())
+    client.on('disconnect', (data = { } as any) => {
       this.addText(key, `${$.disconnect}: ${data.reason}`)
       if (cfg.autoReconnect) {
         this.addText(key, $.autoReconnectMsg)
@@ -123,18 +135,19 @@ export default class MCBot extends Plugin {
         delete this.clients[key]
         this.update()
       }
-    }
+    })
+      .on('command-parse-failed', e => this.addText(key, e.message))
     client.client
       .on('connect', () => this.addText(key, $.connected))
-      .on('disconnect', disconnect)
-      .on('kick_disconnect', disconnect)
       .on('chat', data => {
         const chat = document.getElementById(key + '-chat')
         if (!chat) return
         const elm = document.createElement('p')
         renderDom(render(JSON.parse(data.message)), elm)
         elm.style.margin = '0'
+        elm.style.userSelect = 'text'
         chat.appendChild(elm)
+        chat.scrollTop = chat.scrollHeight + 10
       })
       .on('error', e => {
         console.error(e)
@@ -155,8 +168,10 @@ export default class MCBot extends Plugin {
     if (!chat) return
     const elm = document.createElement('p')
     elm.style.margin = '0'
+    elm.style.userSelect = 'text'
     elm.innerText = text
     chat.appendChild(elm)
+    chat.scrollTop = chat.scrollHeight + 10
   }
 
   applyToBot (key: string) {

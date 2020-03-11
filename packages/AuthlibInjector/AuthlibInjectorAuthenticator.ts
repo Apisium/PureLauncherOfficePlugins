@@ -1,4 +1,4 @@
-import { Authenticator, $ as $0, constants, fs, profilesStore, fetchJson, getJson } from '@plugin'
+import { Authenticator, $ as $0, constants, fs, profilesStore, fetchJson, getJson, notice } from '@plugin'
 import { join } from 'path'
 import $ from './langs'
 
@@ -67,13 +67,12 @@ export const AUTHLIB_INJECTOR = 'AuthlibInjector'
     }
   ]
 })
-export default class AuthlibInjectorAuthenticator extends Auth implements Authenticator.SkinChangeable {
+export default class AuthlibInjectorAuthenticator extends Auth {
   private db: Record<string, AuthlibInjectorProfile> = { }
 
   constructor () {
     super()
     try { this.db = fs.readJsonSync(DATABASE_PATH, { throws: false }) || { } } catch (e) { console.error(e) }
-    console.log(this.db)
   }
 
   public async login (options: { url: string, email: string, password: string }) {
@@ -157,7 +156,7 @@ export default class AuthlibInjectorAuthenticator extends Auth implements Authen
     await fs.writeJson(DATABASE_PATH, this.db)
   }
 
-  public async validate (key: string) {
+  public async validate (key: string, autoRefresh = true) {
     await this.checkLogined(key)
     const p = this.db[key]
     if (!p) return
@@ -165,12 +164,16 @@ export default class AuthlibInjectorAuthenticator extends Auth implements Authen
       { accessToken: p.accessToken, clientToken: p.clientToken })
       .catch(e => {
         console.error(e)
-        throw new Error($0('Network connection failed!'))
+        const err: any = new Error($0('Network connection failed!'))
+        err.connectFailed = true
+        throw err
       })
-    if (json) {
-      console.log(json.errorMessage)
-      return true
-    } else return false
+    if (json && (!autoRefresh || !await this.refresh(key).then(() => true, () => false))) {
+      if (json.errorMessage) notice({ content: json.errorMessage, error: true })
+      delete this.db[key]
+      await fs.writeJson(DATABASE_PATH, this.db)
+      return false
+    } else return true
   }
 
   public getData (key: string) {
@@ -183,10 +186,10 @@ export default class AuthlibInjectorAuthenticator extends Auth implements Authen
     return Object.values(this.db)
   }
 
-  public async changeSkin (key: string, path: string, slim: boolean) {
-    console.log(key, path, slim)
-    // TODO:
-  }
+  // public async changeSkin (key: string, path: string, slim: boolean) {
+  //   console.log(key, path, slim)
+  //   // TODO:
+  // }
 
   private async checkLogined (key: string) {
     this.db = await fs.readJson(DATABASE_PATH, { throws: false }) || { }

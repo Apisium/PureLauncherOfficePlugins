@@ -1,6 +1,5 @@
-/* eslint-disable object-curly-newline */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { React, Reqwq, ProfilesStore, pluginMaster, $ as $0, xmcl,
+/* eslint-disable @typescript-eslint/explicit-function-return-type, object-curly-newline */
+import { React, Reqwq, ProfilesStore, pluginMaster, $ as $0, xmcl, openConfirmDialog,
   version as launcherBrand, constants, notice, Avatar, getVersionTypeText } from '@plugin'
 import { join } from 'path'
 import $ from './langs'
@@ -76,14 +75,25 @@ const MultiInstances: React.FC = () => {
         }
         notice({ content: $.launching })
         const authenticator = pluginMaster.logins[a.type]
-        try { if (!await authenticator.validate(account)) await authenticator.refresh(account) } catch (e) {
-          console.error(e)
-          notice({ content: $.cannotLogin, error: true })
-          return
+        try {
+          if (!await authenticator.validate(account, true)) {
+            throw new Error($0('Current account is invalid, please re-login!'))
+          }
+        } catch (e) {
+          if (!e || !e.connectFailed || !await openConfirmDialog({
+            text: $0('Network connection failed. Do you want to play offline?'),
+            cancelButton: true
+          })) {
+            console.error(e)
+            notice({ content: $.cannotLogin, error: true })
+            return
+          }
         }
         try {
           const versionId = await ps.resolveVersion(version)
-          const option: import('@xmcl/core').LaunchOption = {
+          const option: import('@xmcl/core').LaunchOption & { prechecks: import('@xmcl/core').LaunchPrecheck[] } = {
+            resourcePath: constants.GAME_ROOT,
+            prechecks: ps.extraJson.noChecker ? [] : undefined,
             launcherBrand,
             properties: {},
             userType: 'mojang',

@@ -98,8 +98,8 @@ const css: Record<string, React.CSSProperties> = {
     height: 276
   },
   chat: {
-    padding: '10px 0',
-    height: 276
+    paddingTop: 10,
+    height: 305
   }
 }
 
@@ -129,7 +129,7 @@ const AddBot: React.FC<{ instance: import('./index').default, open: boolean, onC
         key='save'
         className='btn btn-primary'
         onClick={() => {
-          autoNotices(p.instance.addBot(key, host, version)).finally(() => p.instance.applyToBot(key))
+          autoNotices(p.instance.addBot(key, host, version))
           onClose()
         }}
       >{$.create}</button>,
@@ -189,7 +189,12 @@ export default (instance: import('./index').default) => {
           style={account === it ? selectedAvatar : css.avatar}
         />)}
       </div>
-      <input disabled={!bot} style={css.input} value={msg} onChange={e => setMsg(e.target.value)}></input>
+      <input disabled={!bot} style={css.input} value={msg} onChange={e => setMsg(e.target.value)} onKeyPress={e => {
+        if (bot && e.charCode === 13) {
+          bot.client.write('chat', { message: msg })
+          setMsg('')
+        }
+      }}></input>
       <button className='btn btn-primary' disabled={!keys.length || !account} style={css.send} onClick={() => {
         if (bot) {
           bot.client.write('chat', { message: msg })
@@ -204,7 +209,7 @@ export default (instance: import('./index').default) => {
         {page === 0 ? <div className='scrollable' key={account}
           id={account ? account + '-chat' : undefined} style={css.chat}></div>
           : page === 1
-            ? <div key='ctrl' className='scrollable' style={css.ctrl}>
+            ? bot && <div key='ctrl' className='scrollable' style={css.ctrl}>
               <button className='btn btn-primary' onClick={() => bot.stop()}>{$.stop}</button>
               <button className='btn btn-primary' onClick={() => bot.jump()}>{$.jump}</button>
               <button className='btn btn-primary' onClick={() => bot.respawn()}>{$.respawn}</button>
@@ -240,7 +245,7 @@ export default (instance: import('./index').default) => {
                   if (bot.attackTimer) {
                     clearInterval(bot.attackTimer)
                     bot.attackTimer = null
-                  } else bot.keepDigging()
+                  } else bot.keepAttack()
                   update()
                 }} />
               </div>
@@ -286,7 +291,9 @@ export default (instance: import('./index').default) => {
                 form.querySelectorAll('[name]')
                   .forEach((v: HTMLInputElement) => (data[v.name] = v.type === 'checkbox' ? v.checked
                     : v.type === 'number' ? parseFloat(v.value) : v.value))
-                instance.config[account] = data
+                Object.assign(instance.config[account], data)
+                console.log(data)
+                instance.applyToBot(account)
                 autoNotices(instance.saveConfig())
               }}>{$.save}</button></div>
               <div style={css.group}>
@@ -301,7 +308,7 @@ export default (instance: import('./index').default) => {
               </div>
               <div style={css.group}>
                 <label style={css.switchLabel}>{$.enableCommand}</label>
-                <Switch name='command' defaultChecked={!!cfg.enableCommand} />
+                <Switch name='enableCommand' defaultChecked={!!cfg.enableCommand} />
               </div>
               <div style={css.group}>
                 <label>{$.commandPrefix}</label>

@@ -186,7 +186,7 @@ export default class Client extends EventEmitter {
         if (!~i) return
         const cmd = text.slice(i + this.commandPrefix.length).split(' ')
         cmd.unshift(this.commandPrefix, '#')
-        try { this.command.parse(cmd) } catch (e) { console.log(e) }
+        try { this.command.parse(cmd) } catch (e) { this.emit('command-parse-failed', e) }
       })
       .on('player_info', data => {
         data.data.forEach(obj => {
@@ -284,6 +284,7 @@ export default class Client extends EventEmitter {
         if (p) p.visible = false
         if (typeof this.entities[it] !== 'undefined') delete this.entities[it]
       }))
+      .on('error', e => this.emit('disconnect', e.message))
       .on('disconnect', data => this.emit('disconnect', data.reason))
       .on('kick_disconnect', data => this.emit('disconnect', data.reason))
       .on('spawn_entity_living', data => {

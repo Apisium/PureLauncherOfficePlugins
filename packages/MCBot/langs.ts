@@ -18,6 +18,8 @@ export const zhCN = {
   autoReconnectMsg: '将在五秒后自动重新连接!',
   recoring: '录制中...',
   stopRecording: '录制结束!',
+  cannotLogin: '无法验证账户!',
+  description: '"这个插件可以让你创建一个可以聊天、挂机和录制的机器人',
 
   save: '保存配置',
   enableCommand: '启用命令系统',
@@ -39,6 +41,8 @@ export const zhCN = {
   checkTime: '检查时间间隔',
   splitTime: '分段录制时长',
   autoRecording: '自动开始录制',
+  saving: '文件保存中...',
+  saved: '文件保存完毕',
 
   stop: '停止任务',
   jump: '跳跃',
@@ -79,6 +83,10 @@ export default locates<typeof zhCN>({
     confirmDelete: 'Are you sure to delete the BOT?',
     recoring: 'Recording...',
     stopRecording: 'Stop recording!',
+    saving: 'Saving...',
+    saved: 'Saved',
+    cannotLogin: 'Unable to verify the account.',
+    description: 'This plugin allows you to create a bot that can chat and record in game.',
 
     save: 'Save',
     enableCommand: 'ENABLE COMMAND',
