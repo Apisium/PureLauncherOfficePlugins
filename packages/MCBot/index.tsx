@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions, no-sequences, object-curly-newline */
-import { version } from './package.json'
+import { version, id, author } from './package.json'
 import { React, Plugin, plugin, event, history, pluginMaster, LiveRoute, fs,
   constants, $ as $0, openConfirmDialog, notice } from '@plugin'
 import { join } from 'path'
@@ -23,11 +23,11 @@ const renderDom = (info: ReturnType<typeof render>, elm: HTMLElement) => {
 }
 
 @plugin({
+  id,
+  author,
   version,
-  author: 'Shirasawa',
   title: () => 'MCBot',
-  description: () => $.description,
-  id: '@PureLauncher/mc-bot'
+  description: () => $.description
 })
 export default class MCBot extends Plugin {
   public config = {}

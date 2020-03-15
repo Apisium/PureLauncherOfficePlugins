@@ -7,5 +7,14 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.4"
-  }
+  },
+
+  "type": "Plugin",
+  "id": "@PureLauncher/curseforge",
+  "title": "CurseForge",
+  "description": "The installer of CurseForge resources.",
+  "url": "https://dl.pl.apisium.cn/resources/plugins/curseforge/files/7477a2641aa225c0206f63a36e1774dc3f643522.asar",
+  "hash": "7477a2641aa225c0206f63a36e1774dc3f643522",
+  "website": "https://pl.apisium.cn",
+  "updateUrl": "https://dl.pl.apisium.cn/resources/plugins/curseforge/package.json"
 }

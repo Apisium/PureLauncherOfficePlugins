@@ -1,14 +1,14 @@
-import { version } from './package.json'
+import { id, version, author } from './package.json'
 import { Plugin, plugin, event, pluginMaster, React, LiveRoute, history } from '@plugin'
 import $ from './langs'
 import page from './Page'
 
 @plugin({
+  id,
+  author,
   version,
-  author: 'Shirasawa',
   title: () => $.title,
-  description: () => $.description,
-  id: '@PureLauncher/multi-instances'
+  description: () => $.description
 })
 export default class MultiInstances extends Plugin {
   constructor () {

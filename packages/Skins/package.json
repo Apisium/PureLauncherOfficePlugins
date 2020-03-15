@@ -7,5 +7,14 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.4"
-  }
+  },
+
+  "type": "Plugin",
+  "id": "@PureLauncher/skins",
+  "title": "Skins",
+  "description": "This plugin allows you to change PureLauncher's skin.",
+  "url": "https://dl.pl.apisium.cn/resources/plugins/skins/files/b99ec5417ee61dd5d29e8166634969cfb6d0c7d8.asar",
+  "hash": "b99ec5417ee61dd5d29e8166634969cfb6d0c7d8",
+  "website": "https://pl.apisium.cn",
+  "updateUrl": "https://dl.pl.apisium.cn/resources/plugins/skins/package.json"
 }

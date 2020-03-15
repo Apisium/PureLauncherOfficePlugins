@@ -1,26 +1,29 @@
 /* eslint-disable object-curly-newline, @typescript-eslint/explicit-function-return-type */
 import AuthlibInjectorAuthenticator, { AUTHLIB_INJECTOR, AuthlibInjectorProfile } from './AuthlibInjectorAuthenticator'
 import { join } from 'path'
-import { version } from './package.json'
 import { LaunchOption } from '@xmcl/core'
-import { Plugin, plugin, event, pluginMaster, profilesStore, fs, constants,
-  download, getJson, $ as $0, openLoginDialog } from '@plugin'
+import { id, version, author } from './package.json'
+import { Plugin, plugin, event, pluginMaster, profilesStore, fs, constants, types,
+  download, getJson, $ as $0, openLoginDialog, openConfirmDialog } from '@plugin'
 import $ from './langs'
 
 const JAR_PATH = join(constants.APP_PATH, 'authlib-injector/authlib-injector.jar')
 const JSON_URL = 'https://bmclapi2.bangbang93.com/mirrors/authlib-injector/artifact/latest.json'
 
+type YggdrasilVersion = types.ResourceVersion & { yggdrasilUrl?: string }
+
 @plugin({
+  id,
+  author,
   version,
-  author: 'Shirasawa',
   title: () => 'Authlib-Injector',
-  description: () => $.description,
-  id: '@PureLauncher/multi-instances'
+  description: () => $.description
 })
 export default class AuthlibInjector extends Plugin {
+  private instance = new AuthlibInjectorAuthenticator()
   constructor () {
     super()
-    pluginMaster.registerAuthenticator(AUTHLIB_INJECTOR, this, new AuthlibInjectorAuthenticator())
+    pluginMaster.registerAuthenticator(AUTHLIB_INJECTOR, this, this.instance)
   }
 
   @event()
@@ -47,12 +50,25 @@ export default class AuthlibInjector extends Plugin {
   }
 
   @event()
-  public preLaunch (_: string, option: LaunchOption) {
-    const profile = profilesStore.getCurrentProfile()
+  public async launchPostUpdate (_: string, profile: AuthlibInjectorProfile, json?: YggdrasilVersion) {
+    if (!json?.yggdrasilUrl) return
+    if (profile.type === AUTHLIB_INJECTOR && profile.url === json.yggdrasilUrl) return
+    if (this.instance.getAllProfiles().some(it => it.url === json.yggdrasilUrl)) {
+      openConfirmDialog({ text: $.notSelectedProfile })
+    } else if (await openConfirmDialog({ text: $.noExistsProfile, cancelButton: true })) {
+      openLoginDialog(AUTHLIB_INJECTOR, { url: json.yggdrasilUrl })
+    }
+    throw new Error($.incorrectAccount)
+  }
+
+  @event()
+  public preLaunch (_: string, option: LaunchOption, profile: AuthlibInjectorProfile) {
     if (profile?.type !== AUTHLIB_INJECTOR) return
-    const server = (profile as AuthlibInjectorProfile).url
-    // option.extraJVMArgs.push('-Dauthlibinjector.side=client', '-Dauthlibinjector.yggdrasil.prefetched=' + btoa(server))
-    option.yggdrasilAgent = { jar: JAR_PATH, server }
+    option.yggdrasilAgent = {
+      jar: JAR_PATH,
+      server: profile.url,
+      prefetched: profile.manifest ? btoa(JSON.stringify(profile.manifest)) : undefined
+    }
   }
 
   @event()
@@ -60,5 +76,12 @@ export default class AuthlibInjector extends Plugin {
     let data = t.getData('text/plain')
     if (!data.startsWith('authlib-injector:yggdrasil-server:') || !(data = data.slice(34))) return
     openLoginDialog(AUTHLIB_INJECTOR, { url: decodeURIComponent(data) })
+  }
+
+  @event()
+  public protocolInstallResource (r: YggdrasilVersion) {
+    if (!r || !types.isVersion(r) || !r.yggdrasilUrl || typeof r.yggdrasilUrl !== 'string') return
+    if (this.instance.getAllProfiles().some(it => it.url === r.yggdrasilUrl)) return
+    openLoginDialog(AUTHLIB_INJECTOR, { url: r.yggdrasilUrl })
   }
 }

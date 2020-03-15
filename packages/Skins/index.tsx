@@ -1,16 +1,17 @@
 /* eslint-disable no-unused-expressions, no-sequences */
 import { join } from 'path'
-import { version } from './package.json'
+import { remote } from 'electron'
+import { version, id, author } from './package.json'
 import { React, Plugin, plugin, event, history, pluginMaster, ReactRouter, fs, constants } from '@plugin'
 import Page from './Page'
 import $ from './langs'
 
 @plugin({
+  id,
+  author,
   version,
-  author: 'Shirasawa',
   title: () => $.title,
-  description: () => $.description,
-  id: '@PureLauncher/skins'
+  description: () => $.description
 })
 export default class Skins extends Plugin {
   public cssPath = join(constants.APP_PATH, 'custom-skin.css')
@@ -19,8 +20,15 @@ export default class Skins extends Plugin {
 
   constructor () {
     super()
-    this.element.type = 'text/css'
-    document.body.appendChild(this.element)
+    let dark = remote.nativeTheme.shouldUseDarkColors
+    document.body.classList.add(dark ? 'dark-theme' : 'light-theme')
+    remote.nativeTheme.on('updated', () => {
+      if (dark === remote.nativeTheme.shouldUseDarkColors) return
+      dark = !dark
+      document.body.classList.remove('dark-theme', 'light-theme')
+      document.body.classList.add(dark ? 'dark-theme' : 'light-theme')
+    })
+    document.body.append(this.element)
     pluginMaster.addExtensionsButton({
       key: 'skins',
       title: () => $.title,

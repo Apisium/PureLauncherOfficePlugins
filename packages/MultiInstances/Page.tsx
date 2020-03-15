@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type, object-curly-newline */
-import { React, Reqwq, ProfilesStore, pluginMaster, $ as $0, xmcl, openConfirmDialog,
-  version as launcherBrand, constants, notice, Avatar, getVersionTypeText } from '@plugin'
+import { React, Reqwq, ProfilesStore, pluginMaster, $ as $0, xmcl, openConfirmDialog, getSuitableMemory, fs,
+  version as launcherBrand, constants, notice, Avatar, getVersionTypeText, resolveJavaPath } from '@plugin'
 import { join } from 'path'
 import $ from './langs'
 
@@ -54,7 +54,7 @@ const MultiInstances: React.FC = () => {
     <div style={css[1]}>
       <span style={css[2]}>{$.account}: </span>
       <select style={css[3]} onChange={e => setAccount(e.target.value)} value={account}>
-        {accounts.map(it => <option value={it.key} key={it.key}>{it.username}</option>)}
+        {accounts.map(it => <option value={it.key} key={it.key}>{it.username} ({it.type})</option>)}
       </select>
     </div>
     <div style={css[1]}>
@@ -90,25 +90,48 @@ const MultiInstances: React.FC = () => {
           }
         }
         try {
-          const versionId = await ps.resolveVersion(version)
+          const v = { version }
+          await pluginMaster.emitSync('launchResolveVersion', v)
+          await pluginMaster.emitSync('launchPostResolvedVersion', v)
+
+          await pluginMaster.emit('launchPreUpdate', v.version)
+          await pluginMaster.emit('launchPostUpdate', v.version)
+
+          const versionId = await ps.resolveVersion(v.version)
+          await ps.checkModsDirectoryOfVersion(versionId,
+            (await fs.readJson(constants.RESOURCES_VERSIONS_INDEX_PATH, { throws: false }) || { })[version])
+          await pluginMaster.emit('launchEnsureFiles', versionId)
+
+          const versionDir = join(constants.VERSIONS_PATH, versionId)
+          const javaPath = await resolveJavaPath(ps.extraJson.javaPath)
+          const json = (await fs.readJson(constants.RESOURCES_VERSIONS_INDEX_PATH, { throws: false }) || { })[versionId]
           const option: import('@xmcl/core').LaunchOption & { prechecks: import('@xmcl/core').LaunchPrecheck[] } = {
-            resourcePath: constants.GAME_ROOT,
-            prechecks: ps.extraJson.noChecker ? [] : undefined,
             launcherBrand,
+            minMemory: 512,
             properties: {},
             userType: 'mojang',
             version: versionId,
-            gamePath: constants.GAME_ROOT,
             launcherName: 'pure-launcher',
             accessToken: a.accessToken || '',
             versionType: getVersionTypeText(),
+            resourcePath: constants.GAME_ROOT,
+            extraExecOption: { detached: true },
             javaPath: ps.extraJson.javaPath || 'javaw',
             gameProfile: { id: a.uuid, name: a.username },
+            prechecks: ps.extraJson.noChecker ? [] : undefined,
             extraJVMArgs: (ps.extraJson.javaArgs || '').split(' '),
-            extraExecOption: { detached: true }
+            maxMemory: getSuitableMemory(!!JSON.parse(localStorage.getItem('javaArches') || '{}')[javaPath]),
+            gamePath: json?.isolation || (await fs.readJson(join(versionDir, versionId + '.json'),
+              { throws: false }))?.isolation ? versionDir : constants.GAME_ROOT
           }
-          await pluginMaster.emitSync('preLaunch', versionId, option)
-          await launch(option)
+          await pluginMaster.emitSync('preLaunch', versionId, option, a)
+          const p = (await launch(option))
+            .on('error', e => {
+              console.error(e)
+              notice({ content: $.launchFailed + ': ' + e.message, error: true })
+            })
+            .on('exit', code => code && notice({ content: $.launchFailed + ': ' + code, error: true }))
+          await pluginMaster.emit('postLaunch', p, versionId, option)
           notice({ content: $.launched })
         } catch (e) {
           console.error(e)

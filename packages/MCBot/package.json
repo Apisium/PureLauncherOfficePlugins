@@ -7,5 +7,14 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.4"
-  }
+  },
+
+  "type": "Plugin",
+  "id": "@PureLauncher/mc-bot",
+  "title": "MCBot",
+  "description": "This plugin allows you to create a bot that can chat and record in game.",
+  "url": "https://dl.pl.apisium.cn/resources/plugins/mcbot/files/f7a9d89f731c5f422aa7b7b6f8957ac3153e149f.asar",
+  "hash": "f7a9d89f731c5f422aa7b7b6f8957ac3153e149f",
+  "website": "https://pl.apisium.cn",
+  "updateUrl": "https://dl.pl.apisium.cn/resources/plugins/mcbot/package.json"
 }

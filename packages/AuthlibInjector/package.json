@@ -7,5 +7,14 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.8.4"
-  }
+  },
+
+  "type": "Plugin",
+  "id": "@PureLauncher/authlib-injector",
+  "title": "AuthlibInjector",
+  "description": "A plugin that allows you to run multiple game instances.",
+  "url": "https://dl.pl.apisium.cn/resources/plugins/authlib-injector/files/351a0d895a1d68d8eab2cf41438a2f8f9c2a54f3.asar",
+  "hash": "351a0d895a1d68d8eab2cf41438a2f8f9c2a54f3",
+  "website": "https://pl.apisium.cn",
+  "updateUrl": "https://dl.pl.apisium.cn/resources/plugins/authlib-injectorpackage.json"
 }

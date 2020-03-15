@@ -10,7 +10,7 @@ fs.ensureDirSync(ROOT_PATH)
 
 export interface AuthlibInjectorProfile extends Authenticator.Profile {
   url: string
-  serverName?: string
+  manifest?: { meta?: { serverName?: string } }
   displayUrl: string
 }
 
@@ -46,8 +46,8 @@ const logo = require('./logo.png')
 export const AUTHLIB_INJECTOR = 'AuthlibInjector'
 @registerAuthenticator({
   name: AUTHLIB_INJECTOR,
-  title: (_: any, p: AuthlibInjectorProfile) => 'Authlib Injector' + (p ? p.serverName
-    ? ` (${p.serverName} - ${p.displayUrl})` : ` (${p.displayUrl})` : ''),
+  title: (_: any, p: AuthlibInjectorProfile) => 'Authlib Injector' + (p ? p?.manifest?.meta?.serverName
+    ? ` (${p.manifest.meta.serverName} - ${p.displayUrl})` : ` (${p.displayUrl})` : ''),
   logo: join(__dirname, logo),
   fields: [
     {
@@ -108,7 +108,7 @@ export default class AuthlibInjectorAuthenticator extends Auth {
       accessToken: json.accessToken,
       username: p.name,
       displayUrl: options.url,
-      serverName: (await getJson(url).catch(console.error))?.meta?.serverName,
+      manifest: await getJson(url).catch(console.error),
       skinUrl: await this.getSkin(url, p.id, p.name)
     }
     await fs.writeJson(DATABASE_PATH, this.db)
